@@ -599,6 +599,10 @@ def utils():
         auth_source = session['auth_source_manager'][
             'source_friendly_name']
 
+    shared_storage_list = []
+    if config.SERVER_MODE:
+        shared_storage_list = [sdir['name'] for sdir in config.SHARED_STORAGE]
+
     return make_response(
         render_template(
             'browser/js/utils.js',
@@ -630,7 +634,8 @@ def utils():
             auth_source=auth_source,
             heartbeat_timeout=config.SERVER_HEARTBEAT_TIMEOUT,
             password_length_min=config.PASSWORD_LENGTH_MIN,
-            current_ui_lock=current_ui_lock
+            current_ui_lock=current_ui_lock,
+            shared_storage_list=shared_storage_list,
         ),
         200, {'Content-Type': MIMETYPE_APP_JS})
 

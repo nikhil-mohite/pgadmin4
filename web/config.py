@@ -832,6 +832,17 @@ ENABLE_PSQL = False
 ##########################################################################
 ENABLE_BINARY_PATH_BROWSING = False
 
+##########################################################################
+# SHARED_STORAGE setting is used to enable the shared storage in server
+# mode. Provide the name, path and restricted_access values which should be
+# shared between users. If restricted_access is set to True the non admin
+# users will not able to upload/add, delete or rename file/folders in shared
+# storage, only admin user can do it. User need to provide the absolute path
+# of the folder and name can be anything that user can see on UI.
+# [{name: 'Shared 1', path: '/shared_folder', restricted_access: True/False}]
+##########################################################################
+SHARED_STORAGE = []
+
 #############################################################################
 # AUTO_DISCOVER_SERVERS setting is used to enable the pgAdmin to discover the
 # database server automatically on the local machine.
