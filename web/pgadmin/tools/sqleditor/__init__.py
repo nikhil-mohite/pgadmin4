@@ -1808,7 +1808,8 @@ def load_file():
     file_path = unquote(file_data['file_name'])
 
     # retrieve storage directory path
-    storage_manager_path = get_storage_directory()
+    storage_manager_path = get_storage_directory(shared_storage=file_data['storage'])
+
     try:
         Filemanager.check_access_permission(storage_manager_path, file_path)
     except Exception as e:
@@ -1850,7 +1851,11 @@ def save_file():
         file_data = json.loads(request.data, encoding='utf-8')
 
     # retrieve storage directory path
-    storage_manager_path = get_storage_directory()
+    last_storage = Preferences.module('file_manager').preference('last_storage').get()
+    if last_storage != 'my_storage':
+        storage_manager_path = get_storage_directory(shared_storage=last_storage)
+    else:
+        storage_manager_path = get_storage_directory()
 
     # generate full path of file
     file_path = unquote(file_data['file_name'])
