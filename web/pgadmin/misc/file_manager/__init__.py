@@ -1157,7 +1157,7 @@ def file_manager(trans_id):
     ss = kwargs['ss'] if 'ss' in kwargs else None
     my_fm = Filemanager(trans_id, ss)
 
-    if ss and mode in ['upload', 'rename', 'delete', 'addfolder']:
+    if ss and mode in ['upload', 'rename', 'delete', 'addfolder', 'add']:
         my_fm.check_access(ss, mode)
     func = getattr(my_fm, mode)
     try:

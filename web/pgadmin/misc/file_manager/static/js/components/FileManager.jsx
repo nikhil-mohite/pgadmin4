@@ -653,6 +653,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
       if (fmUtilsObj.config.options.ss == '') {
         setSelectedSS('my_storage')
       } else {
+        fmUtilsObj.ss = fmUtilsObj.config.options.ss;
         setSelectedSS(fmUtilsObj.config.options.ss)
       }
 
