@@ -136,7 +136,6 @@ class FileManagerModule(PgAdminModule):
         return [
             'file_manager.init',
             'file_manager.filemanager',
-            'file_manager.change_dir',
             'file_manager.index',
             'file_manager.delete_trans_id',
             'file_manager.save_last_dir',
@@ -161,8 +160,9 @@ class FileManagerModule(PgAdminModule):
         )
         self.laste_storage= self.preference.register(
             'options', 'last_storage',
-            gettext("Last storage"), 'text', '/',
-            category_label=PREF_LABEL_OPTIONS
+            gettext("Last storage"), 'text', '',
+            category_label=PREF_LABEL_OPTIONS,
+            hidden=True
         )
         self.file_dialog_view = self.preference.register(
             'options', 'file_dialog_view',
@@ -410,11 +410,16 @@ class Filemanager():
             blueprint.last_directory_visited.get(params['init_path'])
         last_dir = blueprint.last_directory_visited.get()
         last_ss_name = blueprint.laste_storage.get()
-        if last_ss_name and last_ss_name != 'my_storage':
+        if last_ss_name and last_ss_name != 'my_storage' \
+                and len(config.SHARED_STORAGE) > 0:
             selectedDir = [sdir for sdir in config.SHARED_STORAGE if
                            sdir['name'] == last_ss_name]
             last_ss = selectedDir[0]['path'] if len(selectedDir) == 1 else storage_dir
         else:
+            if last_ss_name != 'my_storage':
+                last_dir = '/'
+                blueprint.laste_storage.set('my_storage')
+
             last_ss = storage_dir
 
         check_dir_exists = False
@@ -760,7 +765,7 @@ class Filemanager():
         trans_data = Filemanager.get_trasaction_selection(self.trans_id)
         return False if capability not in trans_data['capabilities'] else True
 
-    def getfolder(self, path=None, file_type="", show_hidden=False, shared_folder=False):
+    def getfolder(self, path=None, file_type="", show_hidden=False):
 
         """
         Returns files and folders in give path
@@ -768,7 +773,7 @@ class Filemanager():
         trans_data = Filemanager.get_trasaction_selection(self.trans_id)
         the_dir = None
         if config.SERVER_MODE:
-            if shared_folder:
+            if self.sharedDir and len(config.SHARED_STORAGE) > 0:
                 the_dir = self.sharedDir
             else:
                 the_dir = self.dir
@@ -1043,7 +1048,10 @@ class Filemanager():
         if not self.validate_request('create'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
 
-        user_dir = self.dir if self.dir is not None else ''
+        if self.sharedDir and len(config.SHARED_STORAGE) > 0:
+            user_dir = self.sharedDir
+        else:
+            user_dir = self.dir if self.dir is not None else ''
 
         Filemanager.check_access_permission(user_dir, "{}{}".format(
             path, name))
@@ -1071,7 +1079,11 @@ class Filemanager():
         if not self.validate_request('download'):
             return unauthorized(self.ERROR_NOT_ALLOWED['Error'])
 
-        the_dir = self.dir if self.dir is not None else ''
+        if self.sharedDir and len(config.SHARED_STORAGE) > 0:
+            the_dir = self.sharedDir
+        else:
+            the_dir = self.dir if self.dir is not None else ''
+
         orig_path = "{0}{1}".format(the_dir, path)
 
         Filemanager.check_access_permission(
@@ -1096,7 +1108,6 @@ class Filemanager():
         res = {'Code': 1}
         Filemanager.check_access_permission(the_dir, path)
         return res
-
 
     def changeDir(self, root_name):
         selectedDir = [sdir for sdir in config.SHARED_STORAGE if sdir['name'] == root_name]
@@ -1146,7 +1157,7 @@ def file_manager(trans_id):
     ss = kwargs['ss'] if 'ss' in kwargs else None
     my_fm = Filemanager(trans_id, ss)
 
-    if ss:
+    if ss and mode in ['upload', 'rename', 'delete', 'addfolder']:
         my_fm.check_access(ss, mode)
     func = getattr(my_fm, mode)
     try:
@@ -1167,26 +1178,6 @@ def file_manager(trans_id):
 
     if type(res) == Response:
         return res
-    return make_json_response(data={'result': res, 'status': True})
-
-
-@blueprint.route(
-    "/change_dir/<int:trans_id>/",
-    methods=["POST"], endpoint='change_dir'
-)
-@login_required
-def change_dir(trans_id):
-    """
-    Change the storage dir for user
-    """
-    my_fm = Filemanager(trans_id)
-
-    kwargs = json.loads(req.data)
-    kwargs['req'] = req
-    mode = kwargs['mode']
-    del kwargs['mode']
-
-    res = my_fm.changeDir(kwargs['root_dir'])
     return make_json_response(data={'result': res, 'status': True})
 
 

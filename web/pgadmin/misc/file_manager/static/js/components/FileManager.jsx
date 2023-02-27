@@ -12,7 +12,6 @@ import { DefaultButton, PgButtonGroup, PgIconButton, PrimaryButton } from '../..
 import { useModalStyles } from '../../../../../static/js/helpers/ModalProvider';
 import CloseIcon from '@material-ui/icons/CloseRounded';
 import FolderSharedIcon from '@material-ui/icons/FolderShared';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import FolderIcon from '@material-ui/icons/Folder';
 import CheckIcon from '@material-ui/icons/Check';
 import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
@@ -37,7 +36,6 @@ import PropTypes from 'prop-types';
 import { downloadBlob } from '../../../../../static/js/utils';
 import ErrorBoundary from '../../../../../static/js/helpers/ErrorBoundary';
 import _ from 'lodash';
-import { QUERY_TOOL_EVENTS } from '../../../../../tools/sqleditor/static/js/components/QueryToolConstants';
 
 const useStyles = makeStyles((theme)=>({
   footerSaveAs: {
@@ -213,25 +211,10 @@ export class FileManagerUtils {
       'mode': 'getfolder',
       'file_type': this.config.options.last_selected_format || '*',
       'show_hidden': this.showHiddenFiles,
-      'shared_folder': sharedFolder,
-      'is_home_dir': home,
+      'ss': sharedFolder,
     });
     this.currPath = newPath;
     return res.data.data.result;
-  }
-
-  async changeDir(option) {
-
-    // const newPath =  option.value != 'my_storage' ? option.value : null;
-    // let res = await this.api.post(this.fileConnectorUrl, {
-    //   'path': newPath ? `${newPath}` : this.config.options.homedir,
-    //   'mode': 'changeDir',
-    //   'file_type': this.config.options.last_selected_format || '*',
-    //   'show_hidden': this.showHiddenFiles,
-    //   'shared_folder': option.value
-    // });
-    // this.currPath = newPath ? `${newPath}` : this.config.options.homedir;
-    // return res.data.data.result;
   }
 
   async addFolder(row, ss) {
@@ -301,7 +284,7 @@ export class FileManagerUtils {
     });
   }
 
-  async downloadFile(row) {
+  async downloadFile(row, ss) {
     let res = await this.api({
       method: 'POST',
       url: this.fileConnectorUrl,
@@ -309,6 +292,7 @@ export class FileManagerUtils {
       data: {
         'mode': 'download',
         'path': row.Path,
+        'ss': ss,
       },
     });
     downloadBlob(res.data, res.headers.filename);
@@ -383,20 +367,6 @@ export class FileManagerUtils {
       ret = ret.slice(0, ret.lastIndexOf(this.separator)+1);
     }
     return ret;
-  }
-
-  async changeDir(selOpt){
-    // const newPath = this.fileRoot;
-    let res = await this.api.post(`${url_for('file_manager.index')}change_dir/${this.transId}/`, {
-      'mode': 'changeDir',
-      'file_type': this.config.options.last_selected_format || '*',
-      'show_hidden': this.showHiddenFiles,
-      'root_dir': selOpt.value,
-    });
-    // this.currPath = newPath;
-    // setItems(res.data.data.result);
-    // // setPath(fmUtilsObj.currPath);
-    return res.data.data.result;
   }
 
 }
@@ -534,7 +504,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
   const onDownload = async ()=>{
     setLoaderText('Downloading...');
     try {
-      await fmUtilsObj.downloadFile(filteredItems[selectedRowIdx.current]);
+      await fmUtilsObj.downloadFile(filteredItems[selectedRowIdx.current], selectedSS);
     } catch (error) {
       setErrorMsg(parseApiError(error));
       console.error(error);
@@ -680,7 +650,12 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
       } else {
         setViewMode('list');
       }
-      fmUtilsObj.config.options.ss != 'my_storage' && setSelectedSS(fmUtilsObj.config.options.ss)
+      if (fmUtilsObj.config.options.ss == '') {
+        setSelectedSS('my_storage')
+      } else {
+        setSelectedSS(fmUtilsObj.config.options.ss)
+      }
+
       openDir(params?.path, fmUtilsObj.config.options.ss, fmUtilsObj.config.options.ss == 'my_storage');
       params?.path && fmUtilsObj.setLastVisitedDir(params?.path, selectedSS);
     };
@@ -714,7 +689,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
           {Boolean(confirmText) && <ConfirmFile text={confirmText} onNo={()=>setConfirmFile([null, null])} onYes={onConfirmYes}/>}
           <Box className={classes.toolbar}>
             <PgButtonGroup size="small" style={{flexGrow: 1}}>
-              { pgAdmin.server_mode == 'True'?
+              { pgAdmin.server_mode == 'True' && pgAdmin.shared_storage.length > 0?
               <PgIconButton title={gettext(selectedSS)} icon={ selectedSS == 'my_storage' ? <FolderIcon/> :<FolderSharedIcon />} splitButton
               name="menu-shared-storage" ref={sharedSRef} onClick={toggleMenu} className={classes.sharedStorage}/>
               : <></>
@@ -777,7 +752,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
               <PgMenuItem hasCheck checked={fmUtilsObj.showHiddenFiles} onClick={async (e)=>{
                 e.keepOpen = false;
                 fmUtilsObj.showHiddenFiles = !fmUtilsObj.showHiddenFiles;
-                await openDir();
+                await openDir(fmUtilsObj.currPath, selectedSS, selectedSS =='my_storage');
               }}>{gettext('Show Hidden Files')}</PgMenuItem>
             </PgMenu>
             <PgMenu
@@ -789,9 +764,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
               <PgMenuItem hasCheck value="my_storage" checked={selectedSS == 'my_storage'}
                 onClick={async (option)=> {
                   option.keepOpen = false;
-                  // setSelectedSS(option.value)
                   await changeDir(option.value)
-                  // await fmUtilsObj.changeDir(option)
                 }}><FolderIcon/>{gettext('My Storage')}</PgMenuItem>
 
                 {
@@ -800,11 +773,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
                     <PgMenuItem hasCheck value={ss} checked={selectedSS == ss}
                       onClick={async(option)=> {
                         option.keepOpen = false;
-                        // setSelectedSS(option.value)
                         await changeDir(option.value)
-                        // await openDir(option.value)
-                        // await fmUtilsObj.changeDir(option)
-                        // setItems(newItems)
                       }}><FolderSharedIcon />{gettext(ss)}</PgMenuItem>)
                   })
                 }

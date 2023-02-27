@@ -26,7 +26,7 @@ def get_storage_directory(user=current_user, shared_storage=''):
         is_shared_storage = True
         selectedDir = [sdir for sdir in config.SHARED_STORAGE if
                        sdir['name'] == shared_storage]
-        storage_dir = ''
+        storage_dir = None
         if len(selectedDir) > 0:
             the_dir = selectedDir[0]['path']
             storage_dir = the_dir
