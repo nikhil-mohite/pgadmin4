@@ -13,18 +13,17 @@ import { useModalStyles } from '../../../../../static/js/helpers/ModalProvider';
 import CloseIcon from '@material-ui/icons/CloseRounded';
 import FolderSharedIcon from '@material-ui/icons/FolderShared';
 import FolderIcon from '@material-ui/icons/Folder';
-import CheckIcon from '@material-ui/icons/Check';
 import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import HomeRoundedIcon from '@material-ui/icons/HomeRounded';
 import ArrowUpwardRoundedIcon from '@material-ui/icons/ArrowUpwardRounded';
 import MoreHorizRoundedIcon from '@material-ui/icons/MoreHorizRounded';
 import SyncRoundedIcon from '@material-ui/icons/SyncRounded';
 import CreateNewFolderRoundedIcon from '@material-ui/icons/CreateNewFolderRounded';
 import GetAppRoundedIcon from '@material-ui/icons/GetAppRounded';
+import pgAdmin from 'sources/pgadmin';
 import gettext from 'sources/gettext';
 import clsx from 'clsx';
-import { FormFooterMessage, InputSelectNonSearch, InputText, InputSelect, MESSAGE_TYPE } from '../../../../../static/js/components/FormComponents';
+import { FormFooterMessage, InputSelectNonSearch, InputText, MESSAGE_TYPE } from '../../../../../static/js/components/FormComponents';
 import ListView from './ListView';
 import { PgMenu, PgMenuDivider, PgMenuItem, usePgMenuGroup } from '../../../../../static/js/components/Menu';
 import getApiInstance, { parseApiError } from '../../../../../static/js/api_instance';
@@ -211,7 +210,7 @@ export class FileManagerUtils {
     return filename.split('.').pop();
   }
 
-  async getFolder(path, sharedFolder=null, home=true) {
+  async getFolder(path, sharedFolder=null) {
     const newPath = path || this.fileRoot;
     let res = await this.api.post(this.fileConnectorUrl, {
       'path': newPath,
@@ -429,8 +428,6 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
     type: null, idx: null
   });
 
-  const editMenuRef = React.useRef(null);
-
   const sortedItems = useMemo(()=>(
     [...items].sort(getComparator(sortColumns[0]))
   ), [items, sortColumns]);
@@ -450,16 +447,16 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
   const changeDir = async(storage) => {
     setSelectedSS(storage);
     fmUtilsObj.ss = storage;
-    await openDir('/', storage, storage=='my_storage');
+    await openDir('/', storage);
   };
-  const openDir = async (dirPath, changeStoragePath=null, home=true)=>{
+  const openDir = async (dirPath, changeStoragePath=null)=>{
     setErrorMsg('');
     setLoaderText('Loading...');
     try {
       if(fmUtilsObj.isWinDrive(dirPath)) {
         dirPath += fmUtilsObj.separator;
       }
-      let newItems = await fmUtilsObj.getFolder(dirPath || fmUtilsObj.currPath, changeStoragePath, home);
+      let newItems = await fmUtilsObj.getFolder(dirPath || fmUtilsObj.currPath, changeStoragePath);
       setItems(newItems);
       setPath(fmUtilsObj.currPath);
       params.dialog_type == 'storage_dialog' && fmUtilsObj.setLastVisitedDir(fmUtilsObj.currPath, selectedSS);
@@ -614,7 +611,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
   }, [filteredItems, saveAs, fileType]);
   const onItemEnter = useCallback(async (row)=>{
     if(row.file_type == 'dir' || row.file_type == 'drive') {
-      await openDir(row.Path, selectedSS, selectedSS=='my_storage');
+      await openDir(row.Path, selectedSS);
     } else {
       if(params.dialog_type == 'select_file') {
         onOkClick();
@@ -664,7 +661,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
         setSelectedSS(fmUtilsObj.config.options.ss);
       }
 
-      openDir(params?.path, fmUtilsObj.config.options.ss, fmUtilsObj.config.options.ss == 'my_storage');
+      openDir(params?.path, fmUtilsObj.config.options.ss);
       params?.path && fmUtilsObj.setLastVisitedDir(params?.path, selectedSS);
     };
     init();
@@ -703,10 +700,10 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
                 : <></>
               }
               <PgIconButton title={gettext('Home')} onClick={async ()=>{
-                await openDir(fmUtilsObj.config?.options?.homedir, selectedSS, selectedSS == 'my_storage');
+                await openDir(fmUtilsObj.config?.options?.homedir, selectedSS);
               }} icon={<HomeRoundedIcon />} disabled={showUploader} />
               <PgIconButton title={gettext('Go Back')} onClick={async ()=>{
-                await openDir(fmUtilsObj.dirname(fmUtilsObj.currPath), selectedSS, selectedSS == 'my_storage');
+                await openDir(fmUtilsObj.dirname(fmUtilsObj.currPath), selectedSS);
               }} icon={<ArrowUpwardRoundedIcon />} disabled={!fmUtilsObj.dirname(fmUtilsObj.currPath) || showUploader} />
               <InputText className={classes.inputFilename}
                 data-label="file-path"
@@ -719,7 +716,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
                 }} value={path} onChange={setPath} readonly={showUploader} />
 
               <PgIconButton title={gettext('Refresh')} onClick={async ()=>{
-                await openDir(path, selectedSS, selectedSS == 'my_storage');
+                await openDir(path, selectedSS);
               }} icon={<SyncRoundedIcon />} disabled={showUploader} />
             </PgButtonGroup>
             <InputText type="search" className={classes.inputSearch} data-label="search" placeholder={gettext('Search')} value={search} onChange={setSearch} />
@@ -760,7 +757,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
               <PgMenuItem hasCheck checked={fmUtilsObj.showHiddenFiles} onClick={async (e)=>{
                 e.keepOpen = false;
                 fmUtilsObj.showHiddenFiles = !fmUtilsObj.showHiddenFiles;
-                await openDir(fmUtilsObj.currPath, selectedSS, selectedSS =='my_storage');
+                await openDir(fmUtilsObj.currPath, selectedSS);
               }}>{gettext('Show Hidden Files')}</PgMenuItem>
             </PgMenu>
             <PgMenu
@@ -778,7 +775,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
               {
                 pgAdmin.shared_storage.map((ss)=> {
                   return (
-                    <PgMenuItem hasCheck value={ss} checked={selectedSS == ss}
+                    <PgMenuItem key={ss} hasCheck value={ss} checked={selectedSS == ss}
                       onClick={async(option)=> {
                         option.keepOpen = false;
                         await changeDir(option.value);
@@ -794,7 +791,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
                 onClose={async (filesUploaded)=>{
                   setShowUploader(false);
                   if(filesUploaded) {
-                    await openDir(fmUtilsObj.currPath, selectedSS, selectedSS =='my_storage');
+                    await openDir(fmUtilsObj.currPath, selectedSS);
                   }
                 }}/>}
             {viewMode == 'list' &&
