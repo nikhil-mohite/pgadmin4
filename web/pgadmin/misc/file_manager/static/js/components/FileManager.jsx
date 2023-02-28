@@ -15,6 +15,7 @@ import FolderSharedIcon from '@material-ui/icons/FolderShared';
 import FolderIcon from '@material-ui/icons/Folder';
 import CheckIcon from '@material-ui/icons/Check';
 import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import HomeRoundedIcon from '@material-ui/icons/HomeRounded';
 import ArrowUpwardRoundedIcon from '@material-ui/icons/ArrowUpwardRounded';
 import MoreHorizRoundedIcon from '@material-ui/icons/MoreHorizRounded';
@@ -91,6 +92,12 @@ const useStyles = makeStyles((theme)=>({
   },
   sharedStorage: {
     width: '2rem !important',
+  },
+  storageName: {
+    paddingLeft: '0.2rem'
+  },
+  sharedIcon: {
+    width: '1.3rem'
   }
 }));
 
@@ -443,8 +450,8 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
   const changeDir = async(storage) => {
     setSelectedSS(storage);
     fmUtilsObj.ss = storage;
-    await openDir('/', storage, storage=='my_storage')
-  }
+    await openDir('/', storage, storage=='my_storage');
+  };
   const openDir = async (dirPath, changeStoragePath=null, home=true)=>{
     setErrorMsg('');
     setLoaderText('Loading...');
@@ -651,10 +658,10 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
         setViewMode('list');
       }
       if (fmUtilsObj.config.options.ss == '') {
-        setSelectedSS('my_storage')
+        setSelectedSS('my_storage');
       } else {
         fmUtilsObj.ss = fmUtilsObj.config.options.ss;
-        setSelectedSS(fmUtilsObj.config.options.ss)
+        setSelectedSS(fmUtilsObj.config.options.ss);
       }
 
       openDir(params?.path, fmUtilsObj.config.options.ss, fmUtilsObj.config.options.ss == 'my_storage');
@@ -691,10 +698,10 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
           <Box className={classes.toolbar}>
             <PgButtonGroup size="small" style={{flexGrow: 1}}>
               { pgAdmin.server_mode == 'True' && pgAdmin.shared_storage.length > 0?
-              <PgIconButton title={gettext(selectedSS)} icon={ selectedSS == 'my_storage' ? <FolderIcon/> :<FolderSharedIcon />} splitButton
-              name="menu-shared-storage" ref={sharedSRef} onClick={toggleMenu} className={classes.sharedStorage}/>
-              : <></>
-            }
+                <PgIconButton title={ selectedSS == 'my_storage' ? gettext('My Storage') :gettext(selectedSS)} icon={ selectedSS == 'my_storage' ? <FolderIcon/> :<FolderSharedIcon />} splitButton
+                  name="menu-shared-storage" ref={sharedSRef} onClick={toggleMenu} className={classes.sharedStorage}/>
+                : <></>
+              }
               <PgIconButton title={gettext('Home')} onClick={async ()=>{
                 await openDir(fmUtilsObj.config?.options?.homedir, selectedSS, selectedSS == 'my_storage');
               }} icon={<HomeRoundedIcon />} disabled={showUploader} />
@@ -765,19 +772,19 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
               <PgMenuItem hasCheck value="my_storage" checked={selectedSS == 'my_storage'}
                 onClick={async (option)=> {
                   option.keepOpen = false;
-                  await changeDir(option.value)
-                }}><FolderIcon/>{gettext('My Storage')}</PgMenuItem>
+                  await changeDir(option.value);
+                }}><FolderIcon className={classes.sharedIcon}/><Box className={classes.storageName}>{gettext('My Storage')}</Box></PgMenuItem>
 
-                {
-                  pgAdmin.shared_storage.map((ss)=> {
-                    return (
+              {
+                pgAdmin.shared_storage.map((ss)=> {
+                  return (
                     <PgMenuItem hasCheck value={ss} checked={selectedSS == ss}
                       onClick={async(option)=> {
                         option.keepOpen = false;
-                        await changeDir(option.value)
-                      }}><FolderSharedIcon />{gettext(ss)}</PgMenuItem>)
-                  })
-                }
+                        await changeDir(option.value);
+                      }}><FolderSharedIcon className={classes.sharedIcon}/><Box className={classes.storageName}>{gettext(ss)}</Box></PgMenuItem>);
+                })
+              }
 
             </PgMenu>
           </Box>
