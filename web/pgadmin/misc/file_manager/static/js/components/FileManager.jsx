@@ -16,6 +16,7 @@ import FolderIcon from '@material-ui/icons/Folder';
 import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
 import HomeRoundedIcon from '@material-ui/icons/HomeRounded';
 import ArrowUpwardRoundedIcon from '@material-ui/icons/ArrowUpwardRounded';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import MoreHorizRoundedIcon from '@material-ui/icons/MoreHorizRounded';
 import SyncRoundedIcon from '@material-ui/icons/SyncRounded';
 import CreateNewFolderRoundedIcon from '@material-ui/icons/CreateNewFolderRounded';
@@ -90,7 +91,7 @@ const useStyles = makeStyles((theme)=>({
     ...theme.mixins.panelBorder.all,
   },
   sharedStorage: {
-    width: '2rem !important',
+    width: '3rem !important',
   },
   storageName: {
     paddingLeft: '0.2rem'
@@ -695,7 +696,7 @@ export default function FileManager({params, closeModal, onOK, onCancel}) {
           <Box className={classes.toolbar}>
             <PgButtonGroup size="small" style={{flexGrow: 1}}>
               { pgAdmin.server_mode == 'True' && pgAdmin.shared_storage.length > 0?
-                <PgIconButton title={ selectedSS == 'my_storage' ? gettext('My Storage') :gettext(selectedSS)} icon={ selectedSS == 'my_storage' ? <FolderIcon/> :<FolderSharedIcon />} splitButton
+                <PgIconButton title={ selectedSS == 'my_storage' ? gettext('My Storage') :gettext(selectedSS)} icon={ selectedSS == 'my_storage' ? <><FolderIcon/><KeyboardArrowDownIcon style={{marginLeft: '-10px'}} /></> : <><FolderSharedIcon /><KeyboardArrowDownIcon style={{marginLeft: '-10px'}} /></>} splitButton
                   name="menu-shared-storage" ref={sharedSRef} onClick={toggleMenu} className={classes.sharedStorage}/>
                 : <></>
               }
