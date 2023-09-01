@@ -40,7 +40,8 @@ SCHEMA_VERSION = 35
 # And now we return to our regularly scheduled programming:
 #
 ##########################################################################
-
+# from sqlalchemy.pool import NullPool
+# engine_options={'poolclass': NullPool}
 db = SQLAlchemy()
 USER_ID = 'user.id'
 SERVER_ID = 'server.id'
