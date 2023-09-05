@@ -35,7 +35,35 @@ class BackupJobTest(BaseTestGenerator):
                  not_expected_cmd_opts=[],
                  expected_exit_code=[0, None]
              )
-         ))
+         )),('When backup selected objects ',
+         dict(
+             params=dict(
+                 file='test_backup',
+                 format='custom',
+                 verbose=True,
+                 blobs=True,
+                 schemas=[],
+                 tables=[],
+                 database='postgres',
+                 objects={
+                     "schema": [],
+                     "table": [
+                         {"id": "public_test", "name": "test",
+                          "icon": "icon-table", "schema": "public",
+                          "type": "table", "_name": "public.test"}
+                     ],
+                     "view": [], "sequence": [], "foreign_table": [],
+                     "mview": []
+                 }
+             ),
+             url='/backup/job/{0}/object',
+             expected_params=dict(
+                 expected_cmd_opts=['--verbose', '--format=c', '--blobs'],
+                 not_expected_cmd_opts=[],
+                 expected_exit_code=[1]
+             )
+         )),
+
     ]
 
     def setUp(self):

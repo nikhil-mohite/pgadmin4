@@ -729,7 +729,26 @@ export default class BackupSchema extends BaseUISchema {
         errmsg = gettext('Please provide a filename.');
         setError('file', errmsg);
         return true;
-      } else {
+      } else if (state.objects){
+
+        let selectedNodeCollection = {
+          'schema': [],
+          'table': [],
+          'view': [],
+          'sequence': [],
+          'foreign_table': [],
+          'mview': [],
+        };
+        state.objects.forEach((node)=> {
+          if(node.data.is_schema) {
+            selectedNodeCollection['schema'].push(node.data.name);
+          } else if(['table', 'view', 'mview', 'foreign_table', 'sequence'].includes(node.data.type) && !node.data.is_collection && !selectedNodeCollection['schema'].includes(node.data.schema) && !node?.parent?.parent.isSelected) {
+            selectedNodeCollection[node.data.type].push(node.data);
+          }
+        });
+        state.objects = selectedNodeCollection;
+
+      }else {
         setError('file', null);
       }
     }
