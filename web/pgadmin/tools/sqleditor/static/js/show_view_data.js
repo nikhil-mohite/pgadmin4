@@ -86,6 +86,7 @@ export function showViewData(
     showFilterDialog(pgBrowser, treeIdentifier, queryToolMod, transId, gridUrl,
       queryToolTitle, validateUrl);
   } else {
+    // queryToolMod.launch(transId, gridUrl, false, queryToolTitle);
     queryToolMod.launch(transId, gridUrl, false, queryToolTitle);
   }
 }

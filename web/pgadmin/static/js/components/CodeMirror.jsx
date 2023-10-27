@@ -374,7 +374,7 @@ async function handlePaste(_editor, e) {
 }
 
 /* React wrapper for CodeMirror */
-export default function CodeMirror({currEditor, name, value, options, events, readonly, disabled, className, autocomplete=false, gutters=['CodeMirror-linenumbers', 'CodeMirror-foldgutter'], showCopyBtn=false, cid, helpid}) {
+export default function CodeMirror({currEditor, name, value, options, events, readonly, disabled, className, autocomplete=false, gutters=['CodeMirror-linenumbers', 'CodeMirror-foldgutter'], showCopyBtn=false, cid, helpid, showEditWarning=false}) {
   const taRef = useRef();
   const editor = useRef();
   const cmWrapper = useRef();
@@ -427,6 +427,11 @@ export default function CodeMirror({currEditor, name, value, options, events, re
     /* Create the object only once on mount */
     editor.current = new OrigCodeMirror.fromTextArea(
       taRef.current, finalOptions);
+
+    // if(showEditWarning){
+      console.log(editor.current)
+    // }
+
 
     if(!_.isEmpty(value)) {
       editor.current.setValue(value);

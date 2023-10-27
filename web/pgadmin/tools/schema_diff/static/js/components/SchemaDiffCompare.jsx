@@ -578,6 +578,7 @@ export function SchemaDiffCompare({ params }) {
 
     setRowDep(rowDependencies);
     setShowResultGrid(true);
+    console.log(`temp ${Math.random() * 10} ::::: ${temp}`);
     setGridData(temp);
     setAllRowIdList([...new Set(allRowIds)]);
   }

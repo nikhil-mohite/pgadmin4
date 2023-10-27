@@ -519,7 +519,8 @@ export default function Query() {
       'cursorActivity': cursorActivity,
       'change': change,
     }}
-    disabled={!queryToolCtx.params.is_query_tool}
+    showEditWarning={!queryToolCtx.params.is_query_tool}
+    // disabled={!queryToolCtx.params.is_query_tool}
     autocomplete={true}
   />;
 }
