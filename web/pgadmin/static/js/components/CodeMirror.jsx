@@ -428,11 +428,6 @@ export default function CodeMirror({currEditor, name, value, options, events, re
     editor.current = new OrigCodeMirror.fromTextArea(
       taRef.current, finalOptions);
 
-    // if(showEditWarning){
-      console.log(editor.current)
-    // }
-
-
     if(!_.isEmpty(value)) {
       editor.current.setValue(value);
     } else {

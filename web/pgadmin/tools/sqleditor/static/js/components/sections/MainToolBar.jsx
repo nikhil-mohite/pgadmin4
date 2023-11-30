@@ -268,6 +268,23 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros}) {
     eventBus.registerListener(QUERY_TOOL_EVENTS.SET_LIMIT_VALUE, (l)=>{
       setLimit(l);
     });
+
+    eventBus.registerListener(QUERY_TOOL_EVENTS.SET_LIMIT_INFO, (isEnable, limit)=>{
+      setDisableButton('limit', isEnable);
+      setLimit(limit);
+    });
+
+    eventBus.registerListener(QUERY_TOOL_EVENTS.PROMOTE_TO_QUERY_TOOL, ()=>{
+      setDisableButton('filter', true);
+      setDisableButton('limit', true);
+
+      setLimit(limit);
+
+      setDisableButton('execute', false)
+      setDisableButton('execute-options', false);
+    });
+
+
   }, []);
 
   useEffect(()=>{

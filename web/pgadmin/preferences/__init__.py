@@ -47,7 +47,9 @@ class PreferencesModule(PgAdminModule):
         return [
             'preferences.index',
             'preferences.get_by_name',
-            'preferences.get_all'
+            'preferences.get_all',
+            'preferences.update_pref'
+
         ]
 
 
@@ -245,3 +247,31 @@ def save():
                             **domain)
 
     return response
+
+
+@blueprint.route("/update", methods=["PUT"], endpoint="update_pref")
+@login_required
+def update():
+    """
+    Update a specific preference.
+    """
+    pref_data = get_data()
+    pref_data = json.loads(pref_data['pref_data'])
+
+    for data in pref_data:
+        if data['name'] in ['vw_edt_tab_title_placeholder',
+                            'qt_tab_title_placeholder',
+                            'debugger_tab_title_placeholder'] \
+                and data['value'].isspace():
+            data['value'] = ''
+
+
+        pref_module = Preferences.module(data['module'])
+        pref = pref_module.preference(data['name'])
+        # set user preferences
+        pref.set(data['value'])
+
+    return ajax_response(
+        response=[],
+        status=200
+    )

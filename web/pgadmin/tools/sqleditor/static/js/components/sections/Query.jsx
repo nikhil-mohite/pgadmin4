@@ -7,7 +7,7 @@
 //
 //////////////////////////////////////////////////////////////
 import { makeStyles } from '@material-ui/styles';
-import React, {useContext, useCallback, useEffect } from 'react';
+import React, {useContext, useCallback, useEffect, useState } from 'react';
 import { QueryToolContext, QueryToolEventsContext } from '../QueryToolComponent';
 import CodeMirror from '../../../../../../static/js/components/CodeMirror';
 import {PANELS, QUERY_TOOL_EVENTS} from '../QueryToolConstants';
@@ -20,6 +20,8 @@ import { isMac } from '../../../../../../static/js/keyboard_shortcuts';
 import { checkTrojanSource } from '../../../../../../static/js/utils';
 import { parseApiError } from '../../../../../../static/js/api_instance';
 import { usePgAdmin } from '../../../../../../static/js/BrowserComponent';
+import ConfirmPromotionContent from '../dialogs/ConfirmPromotionContent';
+import usePreferences from '../../../../../../preferences/static/js/store';
 
 const useStyles = makeStyles(()=>({
   sql: {
@@ -246,6 +248,8 @@ export default function Query() {
   const markedLine = React.useRef(0);
   const marker = React.useRef();
   const pgAdmin = usePgAdmin();
+  const [isPramoted, setIsPramoted] = useState(queryToolCtx.params.is_query_tool);
+  const preferencesStore = usePreferences();
 
   const removeHighlightError = (cmObj)=>{
     // Remove already existing marker
@@ -335,6 +339,9 @@ export default function Query() {
       eventBus.fireEvent(QUERY_TOOL_EVENTS.EXECUTION_START, null, null);
     }
   };
+
+
+
 
   useEffect(()=>{
     layoutDocker.eventBus.registerListener(LAYOUT_EVENTS.ACTIVE, (currentTabId)=>{
@@ -459,7 +466,7 @@ export default function Query() {
     };
     eventBus.registerListener(QUERY_TOOL_EVENTS.EDITOR_LAST_FOCUS, lastFocus);
     setTimeout(()=>{
-      editor.current.focus();
+      (queryToolCtx.params.is_query_tool|| queryToolCtx.preferences.view_edit_promotion_warning) && editor.current.focus();
     }, 250);
   }, []);
 
@@ -496,7 +503,7 @@ export default function Query() {
     );
   }, [queryToolCtx.params.trans_id]);
 
-  const isDirty = ()=>(queryToolCtx.params.is_query_tool && lastSavedText.current !== editor.current.getValue());
+  const isDirty = ()=>(lastSavedText.current !== editor.current.getValue());
 
   const cursorActivity = useCallback(_.debounce((cmObj)=>{
     const c = cmObj.getCursor();
@@ -508,9 +515,52 @@ export default function Query() {
     eventBus.fireEvent(QUERY_TOOL_EVENTS.QUERY_CHANGED, isDirty());
   }, []);
 
+  const checkViewEditDataPromotion = (args, event) => {
+      if(!isPramoted) {
+        queryToolCtx.modal.showModal(gettext('Promote to Query Tool'), (closeModal) =>(
+          <ConfirmPromotionContent
+            closeModal={closeModal}
+            text={'Manually editing the query will cause this View/Edit Data tab to be converted to a Query Tool tab. You will be able to edit the query text freely, but no longer be able to use the toolbar buttons for sorting and filtering data. </br> Do you wish to continue?'}
+            onContinue={(formData)=>{
+              promoteToQueryTool();
+              // Use replaceSelection as user can add single character or select text and enter new values
+              editor.current.replaceSelection(event.key)
+              preferencesStore.setPreference(formData);
+              setIsPramoted((prev)=> {
+                return !prev;
+              });
+              return true;
+            }}
+            onClose={()=>{}}
+          />
+        ))
+      }
+      return event.key;
+    }
+
+    const promoteToQueryTool = () => {
+      queryToolCtx.toggleQueryTool();
+      eventBus.fireEvent(QUERY_TOOL_EVENTS.PROMOTE_TO_QUERY_TOOL);
+    }
+
+
+  useEffect(()=> {
+    if(isPramoted){
+      // Pop the keydown event as editor.current.off(editor.current, 'keydown', checkViewEditDataPromotion) is unable to deregister this eventhandler
+      if(editor.current?._handlers['keydown']?.length > 0 && (editor.current._handlers['keydown'][0]?.toString() == checkViewEditDataPromotion || editor.current._handlers['keydown'][0]?.toString() == promoteToQueryTool)) {
+        editor.current._handlers['keydown'].pop();
+      }
+    }
+  }, [isPramoted])
+
   return <CodeMirror
     currEditor={(obj)=>{
       editor.current=obj;
+      if(!queryToolCtx.params.is_query_tool && queryToolCtx.preferences.sqleditor.view_edit_promotion_warning){
+        editor.current.on('keydown', checkViewEditDataPromotion)
+      } else if(!queryToolCtx.params.is_query_tool) {
+        editor.current.on('keydown', promoteToQueryTool)
+      }
     }}
     value={''}
     className={classes.sql}
@@ -519,7 +569,7 @@ export default function Query() {
       'cursorActivity': cursorActivity,
       'change': change,
     }}
-    showEditWarning={!queryToolCtx.params.is_query_tool}
+    // showEditWarning={!queryToolCtx.params.is_query_tool}
     // disabled={!queryToolCtx.params.is_query_tool}
     autocomplete={true}
   />;

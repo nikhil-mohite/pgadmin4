@@ -746,7 +746,16 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
     modal: modal,
     params: qtState.params,
     preferences: qtState.preferences,
-    mainContainerRef: containerRef
+    mainContainerRef: containerRef,
+    toggleQueryTool: () => setQtState((prev)=>{
+      console.log('Inside QT CONTEXT TOGGEL ')
+      return {
+        params: {
+          ...prev.params,
+          is_query_tool: true
+        }
+      };
+    })
   }), [qtState.params, qtState.preferences, containerRef.current]);
 
   const queryToolConnContextValue = React.useMemo(()=>({

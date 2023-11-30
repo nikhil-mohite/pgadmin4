@@ -2625,3 +2625,19 @@ def update_macros(trans_id):
         check_transaction_status(trans_id)
 
     return set_macros()
+
+#
+# @blueprint.route(
+#     '/set_query_tool_preferences/',
+#     methods=["POST"], endpoint='set_macros'
+# )
+# @login_required
+# def update_query_tool_preferences(data):
+#     """
+#     This method is used to update user query tool preferences
+#     """
+#     pref = Preferences.module('sqleditor')
+#
+#
+#
+
