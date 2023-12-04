@@ -222,3 +222,18 @@ To delete a row from the grid, click the trash icon.
    :maxdepth: 2
 
    viewdata_filter
+
+
+
+Promote View/Edit Data to Query Tool
+************************************
+
+You can convert View/Edit Data tab windows to Query Tool Tab by editing the Query in View/Edit Data tab. It will ask for permission before converting to Query Tool
+
+.. image:: images/promote_view_edit_data_warning.png
+    :alt: Promote View/Edit Data tab to Query Tool tab warning
+    :align: center
+
+If you select Don't Ask again option from warnign dialog it will save that preference and will not show this waring in future, You can change it from prefrences Query Tool -> Editor -> Show View/Edit Data Promotion Warning ?.
+
+You will be able to edit the query text freely, but no longer be able to use the toolbar buttons for sorting and filtering data after promoting View/Edit Data tab to Query Tool tab.

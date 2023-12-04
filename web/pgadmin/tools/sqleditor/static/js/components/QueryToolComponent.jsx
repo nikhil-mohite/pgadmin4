@@ -748,7 +748,6 @@ export default function QueryToolComponent({params, pgWindow, pgAdmin, selectedN
     preferences: qtState.preferences,
     mainContainerRef: containerRef,
     toggleQueryTool: () => setQtState((prev)=>{
-      console.log('Inside QT CONTEXT TOGGEL ')
       return {
         params: {
           ...prev.params,

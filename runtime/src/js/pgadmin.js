@@ -469,7 +469,8 @@ function getRuntimeMenu() {
       modifiers: runtimeSubMenus['enter_full_screen'].modifiers,
       click: function () {
         this.label = !pgAdminMainScreen?.isFullscreen ? runtimeSubMenus['exit_full_screen'].label : runtimeSubMenus['enter_full_screen'].label;
-        misc.toggleFullScreen();
+        !pgAdminMainScreen?.isFullscreen ? pgAdminMainScreen.enterFullscreen() : pgAdminMainScreen.leaveFullscreen();
+        // misc.toggleFullScreen();
       },
     }));
   subMenus.append(new gui.MenuItem({

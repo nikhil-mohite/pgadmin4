@@ -516,32 +516,32 @@ export default function Query() {
   }, []);
 
   const checkViewEditDataPromotion = (args, event) => {
-      if(!isPramoted) {
-        queryToolCtx.modal.showModal(gettext('Promote to Query Tool'), (closeModal) =>(
-          <ConfirmPromotionContent
-            closeModal={closeModal}
-            text={'Manually editing the query will cause this View/Edit Data tab to be converted to a Query Tool tab. You will be able to edit the query text freely, but no longer be able to use the toolbar buttons for sorting and filtering data. </br> Do you wish to continue?'}
-            onContinue={(formData)=>{
-              promoteToQueryTool();
-              // Use replaceSelection as user can add single character or select text and enter new values
-              editor.current.replaceSelection(event.key)
-              preferencesStore.setPreference(formData);
-              setIsPramoted((prev)=> {
-                return !prev;
-              });
-              return true;
-            }}
-            onClose={()=>{}}
-          />
-        ))
-      }
-      return event.key;
+    if(!isPramoted) {
+      queryToolCtx.modal.showModal(gettext('Promote to Query Tool'), (closeModal) =>(
+        <ConfirmPromotionContent
+          closeModal={closeModal}
+          text={'Manually editing the query will cause this View/Edit Data tab to be converted to a Query Tool tab. You will be able to edit the query text freely, but no longer be able to use the toolbar buttons for sorting and filtering data. </br> Do you wish to continue?'}
+          onContinue={(formData)=>{
+            promoteToQueryTool();
+            // Use replaceSelection as user can add single character or select text and enter new values
+            editor.current.replaceSelection(event.key);
+            preferencesStore.setPreference(formData);
+            setIsPramoted((prev)=> {
+              return !prev;
+            });
+            return true;
+          }}
+          onClose={()=>{}}
+        />
+      ));
     }
+    return event.key;
+  };
 
-    const promoteToQueryTool = () => {
-      queryToolCtx.toggleQueryTool();
-      eventBus.fireEvent(QUERY_TOOL_EVENTS.PROMOTE_TO_QUERY_TOOL);
-    }
+  const promoteToQueryTool = () => {
+    queryToolCtx.toggleQueryTool();
+    eventBus.fireEvent(QUERY_TOOL_EVENTS.PROMOTE_TO_QUERY_TOOL);
+  };
 
 
   useEffect(()=> {
@@ -551,15 +551,15 @@ export default function Query() {
         editor.current._handlers['keydown'].pop();
       }
     }
-  }, [isPramoted])
+  }, [isPramoted]);
 
   return <CodeMirror
     currEditor={(obj)=>{
       editor.current=obj;
       if(!queryToolCtx.params.is_query_tool && queryToolCtx.preferences.sqleditor.view_edit_promotion_warning){
-        editor.current.on('keydown', checkViewEditDataPromotion)
+        editor.current.on('keydown', checkViewEditDataPromotion);
       } else if(!queryToolCtx.params.is_query_tool) {
-        editor.current.on('keydown', promoteToQueryTool)
+        editor.current.on('keydown', promoteToQueryTool);
       }
     }}
     value={''}
@@ -569,8 +569,6 @@ export default function Query() {
       'cursorActivity': cursorActivity,
       'change': change,
     }}
-    // showEditWarning={!queryToolCtx.params.is_query_tool}
-    // disabled={!queryToolCtx.params.is_query_tool}
     autocomplete={true}
   />;
 }

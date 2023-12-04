@@ -187,7 +187,7 @@ def register_query_tool_preferences(self):
         'boolean', True,
         category_label=PREF_LABEL_OPTIONS,
         help_str=gettext(
-            'If set to True, View/Edit Data window will not show promote '
+            'If set to True, View/Edit Data window will show promote '
             'to Query Tool warning'
         )
     )

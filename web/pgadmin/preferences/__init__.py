@@ -20,7 +20,7 @@ from flask_security import login_required
 from pgadmin.utils import PgAdminModule
 from pgadmin.utils.ajax import success_return, \
     make_response as ajax_response, internal_server_error
-from pgadmin.utils.menu import MenuItem
+from pgadmin.utils.ajax import make_json_response
 from pgadmin.utils.preferences import Preferences
 from pgadmin.utils.constants import MIMETYPE_APP_JS
 from pgadmin.browser.server_groups import ServerGroupModule as sgm
@@ -265,13 +265,12 @@ def update():
                 and data['value'].isspace():
             data['value'] = ''
 
-
         pref_module = Preferences.module(data['module'])
         pref = pref_module.preference(data['name'])
         # set user preferences
         pref.set(data['value'])
 
-    return ajax_response(
-        response=[],
+    return make_json_response(
+        data={'data': 'Success'},
         status=200
     )

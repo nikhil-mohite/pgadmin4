@@ -280,7 +280,7 @@ export function MainToolBar({containerRef, onFilterClick, onManageMacros}) {
 
       setLimit(limit);
 
-      setDisableButton('execute', false)
+      setDisableButton('execute', false);
       setDisableButton('execute-options', false);
     });
 

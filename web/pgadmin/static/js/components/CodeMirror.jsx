@@ -374,7 +374,7 @@ async function handlePaste(_editor, e) {
 }
 
 /* React wrapper for CodeMirror */
-export default function CodeMirror({currEditor, name, value, options, events, readonly, disabled, className, autocomplete=false, gutters=['CodeMirror-linenumbers', 'CodeMirror-foldgutter'], showCopyBtn=false, cid, helpid, showEditWarning=false}) {
+export default function CodeMirror({currEditor, name, value, options, events, readonly, disabled, className, autocomplete=false, gutters=['CodeMirror-linenumbers', 'CodeMirror-foldgutter'], showCopyBtn=false, cid, helpid}) {
   const taRef = useRef();
   const editor = useRef();
   const cmWrapper = useRef();
